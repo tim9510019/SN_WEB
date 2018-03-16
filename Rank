@@ -1,0 +1,28 @@
+<<Rank>>
+
+### Western 101 Dataset:
+
+1. food101_INRESv4_NEWAUG_DP80_WD8e-4_sgd_LR0115
+
+Top1   :  77.5732 %
+Top5   :  94.1586 %
+Top10  :  97.3348 %
+
+2. food101_INRESv4_NEWAUG_DP80_WD1e-4_sgd_LR1040_FINAL
+
+Top1   :  72.6308 %
+Top5   :  91.3667 %
+Top10  :  95.4299 %
+
+
+### Singapore 208 Dataset:
+
+1. foodch_INRESv4_NEWAUG_DP80_WD8e-4_sgd_LR1040_clip5p0_entropy_v2_0308
+
+Top1   :  65.6562 %
+Top5   :  89.2466 %
+Top10  :  94.0259 %
+ 
+
+
+

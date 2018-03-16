@@ -1,2 +1,1 @@
-# SN_WEB
-WEB
+'''Collect the latest web api

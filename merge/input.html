@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    div#dropImg {
+      position: relative;
+      top: 20px;
+      border-radius:10px;
+      box-shadow:0px 3px 10px #AAA;
+      padding: 50px;
+      border-style: dotted;
+      background-color: #99DD77;
+    }
+    canvas#world {
+      position: relative;
+      top:  50px;
+      left: 20px;
+    }
+    div#out1 {
+      position: relative;
+      top: 80px;
+      left: 20px;
+    }
+  </style>
+  <meta charset="UTF-8">
+  <title>classify_image_web_client</title>
+</head>
+<body>
+  <div id="dropImg">Drop Food Image Here !!!!</div>
+  <canvas id="world"></canvas>
+  <div id="out1"></div>
+
+<script>
+// Javascript strict mode
+"use strict";
+
+function dataURItoBlob(dataURI) {
+    // convert base64 to raw binary data held in a string
+    // doesn't handle URLEncoded DataURIs
+    const byteString = atob(dataURI.split(',')[1]);
+
+    // separate out the mime component
+    const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0]
+
+    // write the bytes of the string to an ArrayBuffer
+    const ab = new ArrayBuffer(byteString.length);
+    const ia = new Uint8Array(ab);
+    for (let i = 0; i < byteString.length; i++) {
+        ia[i] = byteString.charCodeAt(i);
+    }
+
+    // write the ArrayBuffer to a blob, and you're done
+    return new Blob([ab],{ "type" : mimeString });
+}
+
+function getImageBlob(cb) {
+    const c = document.getElementById("world");
+    try {
+        c.toBlob((blob) => {
+            cb(blob);
+        }, 'image/jpeg', 0.95);
+    } catch(e) {
+        cb(dataURItoBlob(c.toDataURL("image/jpeg")));
+    }
+}
+
+function classify_image_web() {
+    const url = "/";
+    getImageBlob((blob) => {
+        fetch(url, {
+            method: 'POST',
+            body: blob
+        }).then((res) => {
+            return res.json();
+        }).then((json) => {
+            console.dir(json);
+            //const appshow = JSON.stringify(json, null, "  ");
+            const appshow = JSON.stringify(json);
+            var myObj = JSON.parse(appshow);
+            out.innerText = "I think this dishes is probably:\n\n";
+            for (let i = 0; i < 5; i++) {
+              //if(parseFloat(myObj.classify[i]['score']) > 0.1){
+                out.innerText = out.innerText + "Dishes name: " + myObj.classify[i]['name'];
+                out.innerText = out.innerText + "\n";
+                out.innerText = out.innerText + "Carbs: " + myObj.classify[i]['carbs'];
+                out.innerText = out.innerText + "\n\n";
+                //out.innerText = out.innerText + "<canvas id="world222"></canvas>"
+              //}
+            }
+        });
+    });
+}
+
+function setCanvasSize(c, i) {
+    if(i.width>300 || i.hight >300){
+      c.width  = 300;
+      c.height = 300;
+    }else{
+      c.width  = i.width
+      c.height = i.height
+    }
+}
+
+function classify_image(file) {
+    const reader = new FileReader();
+    reader.onload = function (e) {
+        out.innerText = 'Reader onload start';
+
+        const buffer = new Uint8Array(reader.result);
+        const canvas = document.getElementById("world");
+        const img = new Image();
+
+        img.onload = function () {
+            setCanvasSize(canvas, img);
+            const ctx = canvas.getContext("2d");
+            const orientation = 0;
+            if(img.width>299 || img.hight >299){
+                ctx.drawImage(img, 0, 0, 299, 299);
+            }else {
+                ctx.drawImage(img, 0, 0);
+            }
+            classify_image_web();
+        }
+        img.src = URL.createObjectURL(new Blob([buffer], {
+            type: "image/jpeg"
+        }));
+        out.innerText = "Hmm, Let me think.........";
+    };
+    reader.readAsArrayBuffer(file);
+}
+
+const out = document.getElementById("out1");
+
+out.innerHTML = "";
+
+// Get drop area image
+const dropArea = document.getElementById('dropImg');
+
+dropArea.addEventListener('dragover', (e) => {
+    // prevent default action (open as link for some elements)
+    e.preventDefault();
+    dropArea.style.backgroundColor = "#B76E79";
+}, false);
+
+dropArea.addEventListener('dragleave', (e) => {
+    // prevent default action (open as link for some elements)
+    e.preventDefault();
+    dropArea.style.backgroundColor = "#99DD77";
+}, false);
+
+dropArea.addEventListener('drop', (e) => {
+    // prevent default action (open as link for some elements)
+    e.preventDefault();
+
+    dropArea.style.backgroundColor = "#88DD88";
+    const file = e.dataTransfer.files[0];
+    if (!file.type.match(/image\/jpeg/)) {
+        // If not jpeg then drop
+        e.stopPropagation();
+        return false;
+    }
+    classify_image(file);
+
+    e.stopPropagation();
+    out.innerText = "Drop end";
+}, false);
+</script>
+
+</body>
+</html>
